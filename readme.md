@@ -24,7 +24,10 @@ postgres-triggers postgres://foo@localhost:5432/db table1 table2 ...
 ```javascript
 const triggers = require('postgres-triggers')
 
-triggers({ db: 'postgres://foo@localhost:5432/db', tables: [] }, function(err) {
+triggers({
+    db: 'postgres://foo@localhost:5432/db',
+    tables: ['tbl1', 'tbl2']
+}, function(err) {
   if (err) throw err
   console.log('done')
 })
