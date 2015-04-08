@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "bin": "./dist/cli.js",
   "scripts": {
-    "babel": "babel {index,cli}.js --out-dir dist",
+    "babel": "babel *.js --out-dir dist",
     "prepublish": "npm run babel",
     "test": "babel-node test/test.js"
   },
