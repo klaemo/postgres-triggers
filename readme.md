@@ -10,7 +10,7 @@ The triggers will return a JSON object with some information and the changed row
 ## Install
 
 ```
-npm i [-g] postgres-trigger
+npm i [-g] postgres-triggers
 ```
 
 ## Usage (CLI)
