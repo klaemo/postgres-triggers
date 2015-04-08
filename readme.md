@@ -21,7 +21,7 @@ postgres-triggers postgres://foo@localhost:5432/db table1 table2 ...
 
 ## Usage (API)
 
-```
+```javascript
 const triggers = require('postgres-triggers')
 
 triggers({ db: 'postgres://foo@localhost:5432/db', tables: [] }, function(err) {
