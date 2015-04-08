@@ -1,6 +1,6 @@
 {
   "name": "postgres-triggers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Setup changes-feed like trigger functions in PostgreSQL",
   "main": "index.js",
   "bin": "./cli.js",
