@@ -1,0 +1,12 @@
+before_install:
+  - npm install -g npm
+language: node_js
+node_js:
+  - "iojs"
+  - "0.12"
+  - "0.10"
+addons:
+  postgresql: "9.3"
+env: POSTGRES=postgres://postgres@localhost:5432/travis_ci_test
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres

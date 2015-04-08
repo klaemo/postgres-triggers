@@ -1,4 +1,4 @@
-# postgres-triggers
+# postgres-triggers [![Build Status](https://travis-ci.org/klaemo/postgres-triggers.svg)](https://travis-ci.org/klaemo/postgres-triggers)
 [![NPM](https://nodei.co/npm/postgres-triggers.png)](https://nodei.co/npm/postgres-triggers/)
 
 Create trigger functions for changes (INSERT, UPDATE, DELETE) in tables.
