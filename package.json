@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Setup changes-feed like trigger functions in PostgreSQL",
   "main": "index.js",
+  "bin": "./cli.js",
   "scripts": {
     "test": "node test/test.js | tap-spec"
   },
