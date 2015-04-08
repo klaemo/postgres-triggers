@@ -45,6 +45,10 @@ function buildTriggers (tables) {
 
 module.exports = function (opts, cb) {
   assert(Array.isArray(opts.tables), 'opts.tables should be an array.')
+  assert.ok(opts.db, 'need db connection string')
+
+  // nothing to do
+  if (!opts.tables.length) return cb(null, { message: 'nothing to do' })
 
   pg.connect(opts.db, function(err, client, done) {
     if (err) return cb(err)
@@ -63,7 +67,7 @@ module.exports = function (opts, cb) {
 
     query.on('end', function () {
       client.end()
-      cb()
+      cb(null, { message: 'done' })
     })
   })
 }

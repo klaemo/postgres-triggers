@@ -12,7 +12,7 @@ program
 const db = program.args[0]
 const tables = program.args.slice(1)
 
-triggers({ db: db, tables: tables }, function (err) {
+triggers({ db: db, tables: tables }, function (err, res) {
   if (err) throw err
-  console.log('Done!')
+  console.log(res.message)
 })
