@@ -1,0 +1,26 @@
+{
+  "name": "postgres-triggers",
+  "version": "1.0.0",
+  "description": "Setup changes feed like trigger functions in PostgreSQL\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/klaemo/postgres-triggers.git"
+  },
+  "keywords": [
+    "postgres",
+    "postgresql",
+    "triggers",
+    "changes",
+    "functions"
+  ],
+  "author": "Clemens Stolle <klaemo@fastmail.fm>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/klaemo/postgres-triggers/issues"
+  },
+  "homepage": "https://github.com/klaemo/postgres-triggers"
+}
