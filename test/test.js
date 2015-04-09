@@ -2,7 +2,7 @@
 
 const pg = require('pg')
 const test = require('tape')
-const triggers = require('../')
+const triggers = require('../index.js')
 
 const DB = process.env.POSTGRES
 
@@ -22,25 +22,41 @@ test('buildTriggers()', function (t) {
   })
 })
 
-test('buildQuery()', function (t) {
-  t.plan(3)
+test('buildQuery(triggers)', function (t) {
+  t.plan(4)
 
   const str = triggers.buildQuery(triggers.buildTriggers(['table']))
 
   t.equal(typeof str, 'string')
   t.throws(triggers.buildQuery)
   t.ok(str.indexOf(`DROP TRIGGER IF EXISTS table_notify_update ON table;`) > -1, 'should have triggers')
+  t.ok(str.indexOf(`pg_notify('table_update',`) > -1, 'should have default channel')
+})
+
+test('buildQuery(triggers, opts) with channel', function (t) {
+  t.plan(3)
+
+  const str = triggers.buildQuery(triggers.buildTriggers(['table']), { channel: 'foo_chan' })
+
+  t.equal(typeof str, 'string')
+  t.ok(str.indexOf(`DROP TRIGGER IF EXISTS table_notify_update ON table;`) > -1, 'should have triggers')
+  t.ok(str.indexOf(`pg_notify('foo_chan',`) > -1, 'should have correct channel')
 })
 
 function create (client, cb) {
   client.query(`
     CREATE TABLE IF NOT EXISTS triggers_test_table1 (id bigserial primary key, name varchar(20));
     CREATE TABLE IF NOT EXISTS triggers_test_table2 (id bigserial primary key, name varchar(20));
+    CREATE TABLE IF NOT EXISTS triggers_test_table3 (u_id bigserial primary key, name varchar(20));
   `, cb)
 }
 
 function clean (client, cb) {
-  client.query('DROP TABLE IF EXISTS triggers_test_table1; DROP TABLE IF EXISTS triggers_test_table2;', cb)
+  client.query(`
+    DROP TABLE IF EXISTS triggers_test_table1;
+    DROP TABLE IF EXISTS triggers_test_table2;
+    DROP TABLE IF EXISTS triggers_test_table3;
+  `, cb)
 }
 
 test('create triggers', function (t) {
@@ -69,9 +85,11 @@ test('create triggers', function (t) {
 
 
 test('test triggers', function (t) {
-  t.plan(12)
+  t.plan(15)
   const opts = {
-    db: DB, tables: ['triggers_test_table1', 'triggers_test_table2']
+    db: DB, tables: [
+      'triggers_test_table1', 'triggers_test_table2', { name: 'triggers_test_table3', id: 'u_id'}
+    ]
   }
 
   pg.connect(opts.db, function (err, client) {
@@ -82,11 +100,12 @@ test('test triggers', function (t) {
       t.ok(pl.table, 'should have table field')
       t.ok(pl.id, 'should have id field')
       t.ok(pl.type, 'should have type field')
-      t.ok(pl.row, 'should have row object')
-      t.ok(pl.row.id, 'should have row object')
-      t.ok(pl.row.name, 'should have table object')
-
-      if (++cnt === 2) client.end()
+      t.strictEqual(pl.type, 'insert', 'should lowercased type')
+      t.strictEqual(typeof pl.row, 'object', 'should have row object')
+      console.log(msg.payload)
+      if (++cnt === 3) {
+        client.end()
+      }
     })
 
     create(client, function (err2) {
@@ -97,6 +116,7 @@ test('test triggers', function (t) {
           if (err4) throw err4
           client.query('INSERT INTO triggers_test_table1 (name) VALUES (\'foo\')')
           client.query('INSERT INTO triggers_test_table2 (name) VALUES (\'bar\')')
+          client.query('INSERT INTO triggers_test_table3 (name) VALUES (\'baz\')')
         })
       })
     })

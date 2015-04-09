@@ -3,7 +3,8 @@
 const pg = require('pg')
 const assert = require('assert')
 
-function buildQuery (triggers) {
+function buildQuery (triggers, opts = {}) {
+  opts.channel = typeof opts.channel === 'string' ? opts.channel : 'table_update'
   assert.equal(typeof triggers, 'string')
 
   return `
@@ -13,13 +14,13 @@ function buildQuery (triggers) {
       row RECORD;
     BEGIN
       IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
-        id = NEW.id;
+        EXECUTE 'SELECT ($1).' || TG_ARGV[0] INTO id USING NEW;
         row = NEW;
       ELSE
-        id = OLD.id;
+        EXECUTE 'SELECT ($1).' || TG_ARGV[0] INTO id USING OLD;
         row = OLD;
       END IF;
-      PERFORM pg_notify('table_update', json_build_object('table', TG_TABLE_NAME, 'id', id, 'type', TG_OP, 'row', row_to_json(row))::text);
+      PERFORM pg_notify('${opts.channel}', json_build_object('table', TG_TABLE_NAME, 'id', id, 'type', lower(TG_OP), 'row', row_to_json(row))::text);
       RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
@@ -28,17 +29,29 @@ function buildQuery (triggers) {
   `
 }
 
+function parseTables (tables) {
+  // tableName:idColumn -> { name: 'tableName', id: 'idColumn' }
+  return tables.map(function (table) {
+    if (typeof table === 'string') {
+      let split = table.split(':')
+      return { name: split[0], id: split[1] || 'id' }
+    } else {
+      return table
+    }
+  })
+}
+
 function buildTriggers (tables) {
-  return tables.map(function(tableName) {
+  return parseTables(tables).map(function(table) {
     return `
-      DROP TRIGGER IF EXISTS ${tableName}_notify_update ON ${tableName};
-      CREATE TRIGGER ${tableName}_notify_update AFTER UPDATE ON ${tableName} FOR EACH ROW EXECUTE PROCEDURE table_update_notify();
+      DROP TRIGGER IF EXISTS ${table.name}_notify_update ON ${table.name};
+      CREATE TRIGGER ${table.name}_notify_update AFTER UPDATE ON ${table.name} FOR EACH ROW EXECUTE PROCEDURE table_update_notify('${table.id}');
 
-      DROP TRIGGER IF EXISTS ${tableName}_notify_insert ON ${tableName};
-      CREATE TRIGGER ${tableName}_notify_insert AFTER INSERT ON ${tableName} FOR EACH ROW EXECUTE PROCEDURE table_update_notify();
+      DROP TRIGGER IF EXISTS ${table.name}_notify_insert ON ${table.name};
+      CREATE TRIGGER ${table.name}_notify_insert AFTER INSERT ON ${table.name} FOR EACH ROW EXECUTE PROCEDURE table_update_notify('${table.id}');
 
-      DROP TRIGGER IF EXISTS ${tableName}_notify_delete ON ${tableName};
-      CREATE TRIGGER ${tableName}_notify_delete AFTER DELETE ON ${tableName} FOR EACH ROW EXECUTE PROCEDURE table_update_notify();
+      DROP TRIGGER IF EXISTS ${table.name}_notify_delete ON ${table.name};
+      CREATE TRIGGER ${table.name}_notify_delete AFTER DELETE ON ${table.name} FOR EACH ROW EXECUTE PROCEDURE table_update_notify('${table.id}');
     `
   }).join('')
 }
@@ -54,7 +67,7 @@ module.exports = function (opts, cb) {
     if (err) return cb(err)
 
     const triggers = buildTriggers(opts.tables)
-    const query = client.query(buildQuery(triggers))
+    const query = client.query(buildQuery(triggers, opts))
 
     // query.on('row', function(row) {
     //   console.log(row)
