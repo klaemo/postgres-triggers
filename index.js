@@ -10,16 +10,17 @@ function buildQuery (triggers, opts = {}) {
   return `
     CREATE OR REPLACE FUNCTION table_update_notify() RETURNS trigger AS $$
     DECLARE
-      id BIGINT;
+      id TEXT;
       row RECORD;
     BEGIN
       IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
-        EXECUTE 'SELECT ($1).' || TG_ARGV[0] INTO id USING NEW;
         row = NEW;
       ELSE
-        EXECUTE 'SELECT ($1).' || TG_ARGV[0] INTO id USING OLD;
         row = OLD;
       END IF;
+
+      EXECUTE 'SELECT ($1).' || TG_ARGV[0] INTO id USING row;
+
       PERFORM pg_notify('${opts.channel}', json_build_object('table', TG_TABLE_NAME, 'id', id, 'type', lower(TG_OP), 'row', row_to_json(row))::text);
       RETURN NEW;
     END;

@@ -47,7 +47,7 @@ function create (client, cb) {
   client.query(`
     CREATE TABLE IF NOT EXISTS triggers_test_table1 (id bigserial primary key, name varchar(20));
     CREATE TABLE IF NOT EXISTS triggers_test_table2 (id bigserial primary key, name varchar(20));
-    CREATE TABLE IF NOT EXISTS triggers_test_table3 (u_id bigserial primary key, name varchar(20));
+    CREATE TABLE IF NOT EXISTS triggers_test_table3 (u_id varchar(8) primary key, name varchar(20));
   `, cb)
 }
 
@@ -88,7 +88,7 @@ test('test triggers', function (t) {
   t.plan(15)
   const opts = {
     db: DB, tables: [
-      'triggers_test_table1', 'triggers_test_table2', { name: 'triggers_test_table3', id: 'u_id'}
+      'triggers_test_table1', 'triggers_test_table2:id', { name: 'triggers_test_table3', id: 'u_id'}
     ]
   }
 
@@ -102,7 +102,7 @@ test('test triggers', function (t) {
       t.ok(pl.type, 'should have type field')
       t.strictEqual(pl.type, 'insert', 'should lowercased type')
       t.strictEqual(typeof pl.row, 'object', 'should have row object')
-      console.log(msg.payload)
+
       if (++cnt === 3) {
         client.end()
       }
@@ -116,7 +116,7 @@ test('test triggers', function (t) {
           if (err4) throw err4
           client.query('INSERT INTO triggers_test_table1 (name) VALUES (\'foo\')')
           client.query('INSERT INTO triggers_test_table2 (name) VALUES (\'bar\')')
-          client.query('INSERT INTO triggers_test_table3 (name) VALUES (\'baz\')')
+          client.query('INSERT INTO triggers_test_table3 (u_id, name) VALUES (\'uniqueid\', \'baz\')')
         })
       })
     })

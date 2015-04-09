@@ -32,9 +32,9 @@ triggers({
     // three ways of specifying table name and id column
     // default idColumn: 'id'
     tables: [
-      'tbl1', 'tblName:idColumn', { name: 'tableName', 'id': 'idColumn'}
+      'tbl1', 'tblName:idColumn', { name: 'tableName', id: 'idColumn'}
     ],
-    channel: 'channel-name' // optional. default: 'table_update'
+    channel: 'table_update' // optional
 }, function(err) {
   if (err) throw err
   console.log('done')
@@ -54,7 +54,6 @@ triggers({
 
 ## TODO
 
-- make it work with other types of ids (bigint only currently)
 - allow removal of triggers
 
 ## Tests
